@@ -15,22 +15,14 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
             unsigned char *iv, unsigned char *ciphertext)
 {
     EVP_CIPHER_CTX *ctx;
-
     int len;
-
     int ciphertext_len;
 
     /* Create and initialise the context */
     if(!(ctx = EVP_CIPHER_CTX_new()))
         handleErrors();
 
-    /*
-     * Initialise the encryption operation. IMPORTANT - ensure you use a key
-     * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-     * IV size for *most* modes is the same as the block size. For AES this
-     * is 128 bits
-     */
+    /* Initialise the encryption operation. */
     if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
         handleErrors();
 
@@ -60,22 +52,14 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
             unsigned char *iv, unsigned char *plaintext)
 {
     EVP_CIPHER_CTX *ctx;
-
     int len;
-
     int plaintext_len;
 
     /* Create and initialise the context */
     if(!(ctx = EVP_CIPHER_CTX_new()))
         handleErrors();
 
-    /*
-     * Initialise the decryption operation. IMPORTANT - ensure you use a key
-     * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-     * IV size for *most* modes is the same as the block size. For AES this
-     * is 128 bits
-     */
+    /* Initialise the decryption operation. */
     if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
         handleErrors();
 
@@ -104,11 +88,6 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 
 int main (int argc, char **argv)
 {
-    /*
-     * Set up the key and iv. Do I need to say to not hard code these in a
-     * real application? :-)
-     */
-
     /* A 256 bit key */
     unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
 
@@ -132,11 +111,7 @@ int main (int argc, char **argv)
     fread(plaintext, bufferSize, 1, fp);
 
 
-    /*
-     * Buffer for ciphertext. Ensure the buffer is long enough for the
-     * ciphertext which may be longer than the plaintext, depending on the
-     * algorithm and mode.
-     */
+    /* Buffer for ciphertext. */
     unsigned char *ciphertext = (unsigned char *) malloc(sizeof(unsigned char) * bufferSize);
 
     /* Buffer for the decrypted text */
@@ -148,10 +123,6 @@ int main (int argc, char **argv)
     ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
                               ciphertext);
 
-    /* Do something useful with the ciphertext here */
-    // printf("Ciphertext is:\n");
-    // BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-
     /* Decrypt the ciphertext */
     decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
                                 decryptedtext);
@@ -159,13 +130,16 @@ int main (int argc, char **argv)
     /* Add a NULL terminator. We are expecting printable text */
     decryptedtext[decryptedtext_len] = '\0';
 
-    /* Show the decrypted text */
-    // printf("Decrypted text is:\n");
-    // printf("%s\n", decryptedtext);
+    char outFilename[20] = "output_aes_256_cbc";
+    char *ext = strrchr(argv[1], '.');
     FILE *output;
-
     errno = 0;
-    output = fopen("output_aes_256_cbc.txt", "w");
+
+    /* If original file has extension, concat it to output filename */
+    if(ext) {
+        strncat(outFilename, ext, strlen(ext));
+    }
+    output = fopen(outFilename, "w");
     if (errno != 0 ) {
         perror("Error occurred while opening file");
         exit(1);

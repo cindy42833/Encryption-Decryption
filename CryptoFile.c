@@ -178,21 +178,18 @@ int main (int argc, char **argv)
 
     /* Add a NULL terminator. We are expecting printable text */
     decryptedtext[decryptedtext_len] = '\0';
-    FILE *cipher;
 
+    char outFilename[20] = "output";
+    char *ext = strrchr(argv[1], '.');
+    FILE *output;
     errno = 0;
-    cipher = fopen("cipher_test.txt", "w");
-    if (errno != 0 ) {
-        perror("Error occurred while opening file");
-        exit(1);
+
+    /* If original file has extension, concat it to output filename */
+    if(ext) {
+        strncat(outFilename, ext, strlen(ext));
     }
 
-    fwrite(ciphertext, ciphertext_len, 1, cipher);
-
-    FILE *output;
-
-    errno = 0;
-    output = fopen("output_test.txt", "w");
+    output = fopen(outFilename, "w");
     if (errno != 0 ) {
         perror("Error occurred while opening file");
         exit(1);
@@ -200,6 +197,7 @@ int main (int argc, char **argv)
 
     fwrite(decryptedtext, decryptedtext_len, 1, output);
     double diff =  end.tv_sec-start.tv_sec + (end.tv_usec-start.tv_usec)/1000000.0;
+    printf("Run time: %lf sec\n", diff);
     printf("Speed %lf bytes/sec\n", strlen(plaintext) / diff);
     return 0;
 }
